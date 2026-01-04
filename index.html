@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Catálogo de Produtos</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      background: #f3f4f6;
+      color: #111827;
+    }
+
+    header {
+      background: #111827;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 30px auto;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: 3fr 1fr;
+      gap: 20px;
+    }
+
+    .products {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    .product {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .product img {
+      width: 100%;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .product h3 {
+      font-size: 1.1rem;
+      margin-bottom: 5px;
+    }
+
+    .product p {
+      font-size: 0.9rem;
+      color: #4b5563;
+      margin-bottom: 10px;
+    }
+
+    .product span {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .product button {
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      background: #4f46e5;
+      color: white;
+      cursor: pointer;
+    }
+
+    .cart {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+      height: fit-content;
+    }
+
+    .cart h2 {
+      margin-bottom: 15px;
+      font-size: 1.2rem;
+    }
+
+    .cart ul {
+      list-style: none;
+      margin-bottom: 15px;
+    }
+
+    .cart li {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+    }
+
+    .total {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .clear-cart {
+      width: 100%;
+      padding: 8px;
+      border: none;
+      border-radius: 6px;
+      background: #ef4444;
+      color: white;
+      cursor: pointer;
+    }
+
+    @media (max-width: 900px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Catálogo de Produtos</h1>
+    <p>Loja online fictícia</p>
+  </header>
+
+  <main>
+    <section class="products" id="products"></section>
+
+    <aside class="cart">
+      <h2>Carrinho</h2>
+      <ul id="cartItems"></ul>
+      <div class="total" id="total">Total: R$ 0,00</div>
+      <button class="clear-cart" onclick="clearCart()">Limpar carrinho</button>
+    </aside>
+  </main>
+
+  <script>
+    const productsData = [
+      {
+        id: 1,
+        name: "Notebook",
+        description: "Notebook para estudos e trabalho",
+        price: 3500,
+        image: "https://via.placeholder.com/300x200"
+      },
+      {
+        id: 2,
+        name: "Headset",
+        description: "Headset gamer com microfone",
+        price: 250,
+        image: "https://via.placeholder.com/300x200"
+      },
+      {
+        id: 3,
+        name: "Mouse",
+        description: "Mouse sem fio",
+        price: 120,
+        image: "https://via.placeholder.com/300x200"
+      },
+      {
+        id: 4,
+        name: "Teclado",
+        description: "Teclado mecânico",
+        price: 300,
+        image: "https://via.placeholder.com/300x200"
+      }
+    ];
+
+    const productsContainer = document.getElementById("products");
+    const cartItems = document.getElementById("cartItems");
+    const totalElement = document.getElementById("total");
+
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+    function renderProducts() {
+      productsContainer.innerHTML = "";
+
+      productsData.forEach(product => {
+        const div = document.createElement("div");
+        div.classList.add("product");
+
+        div.innerHTML = `
+          <img src="${product.image}" alt="${product.name}">
+          <h3>${product.name}</h3>
+          <p>${product.description}</p>
+          <span>R$ ${product.price.toFixed(2)}</span>
+          <button onclick="addToCart(${product.id})">Adicionar</button>
+        `;
+
+        productsContainer.appendChild(div);
+      });
+    }
+
+    function renderCart() {
+      cartItems.innerHTML = "";
+
+      let total = 0;
+
+      cart.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = `${item.name} x${item.quantity}`;
+        const price = document.createElement("span");
+        price.textContent = `R$ ${(item.price * item.quantity).toFixed(2)}`;
+
+        li.appendChild(price);
+        cartItems.appendChild(li);
+
+        total += item.price * item.quantity;
+      });
+
+      totalElement.textContent = `Total: R$ ${total.toFixed(2)}`;
+      localStorage.setItem("cart", JSON.stringify(cart));
+    }
+
+    function addToCart(id) {
+      const product = productsData.find(p => p.id === id);
+      const item = cart.find(i => i.id === id);
+
+      if (item) {
+        item.quantity++;
+      } else {
+        cart.push({ ...product, quantity: 1 });
+      }
+
+      renderCart();
+    }
+
+    function clearCart() {
+      cart = [];
+      renderCart();
+    }
+
+    renderProducts();
+    renderCart();
+  </script>
+
+</body>
+</html>
